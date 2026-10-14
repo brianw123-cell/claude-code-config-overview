@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude Code Config System — Visual Overview (v3)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1/dist/fonts/geist-sans/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1/dist/fonts/geist-mono/style.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f0ede8;
+      --bg-alt: #e9e5df;
+      --bg-card: #f7f4f0;
+      --bg-code: #ebe7e0;
+      --navy: #1e2d42;
+      --navy-deep: #141e2b;
+      --slate: #8fa8be;
+      --text: #2a2a2a;
+      --text-mid: #4a4a4a;
+      --text-muted: #787878;
+      --border: #d4cfc9;
+      --border-soft: #e0dbd4;
+      --accent: #4a7fa5;
+      --accent-soft: rgba(74,127,165,0.10);
+      --good: #4d8a5c;
+      --warn: #c2884a;
+      --bad: #b35a4f;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: "Geist", "DM Sans", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      font-size: 15px;
+      -webkit-font-smoothing: antialiased;
+    }
+    code, .mono { font-family: "Geist Mono", "JetBrains Mono", "SF Mono", Menlo, monospace; }
+
+    .hero {
+      background: linear-gradient(170deg, var(--navy-deep) 0%, #1a2a3e 30%, var(--navy) 60%, #243a52 100%);
+      padding: 46px 6% 50px;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ""; position: absolute; top: -200px; right: -120px;
+      width: 540px; height: 540px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(74,127,165,0.10) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .hero-inner { max-width: 1100px; margin: 0 auto; position: relative; }
+    .hero-eyebrow {
+      font-size: 11px; font-weight: 500; letter-spacing: 0.24em; text-transform: uppercase;
+      color: rgba(143,168,190,0.7); margin-bottom: 14px;
+    }
+    .hero h1 {
+      font-size: clamp(30px, 4.4vw, 46px); font-weight: 600;
+      color: rgba(245,243,239,0.95); line-height: 1.08; margin-bottom: 16px;
+      letter-spacing: -0.02em; max-width: 900px;
+    }
+    .hero p.lead {
+      font-size: 16px; color: rgba(245,243,239,0.65); max-width: 720px;
+      margin-bottom: 22px; line-height: 1.5;
+    }
+    .stack { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 2px; }
+    .stack-pill {
+      font-size: 12px; font-weight: 500; color: rgba(245,243,239,0.80);
+      padding: 5px 11px; border-radius: 999px;
+      background: rgba(143,168,190,0.13); border: 1px solid rgba(143,168,190,0.20);
+    }
+
+    section.band { padding: 44px 6%; border-bottom: 1px solid var(--border-soft); }
+    section.band.alt { background: var(--bg-alt); }
+    section.band.compact { padding: 34px 6%; }
+    .container { max-width: 1100px; margin: 0 auto; }
+    .section-eyebrow {
+      font-size: 11px; font-weight: 500; letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 8px;
+    }
+    .section-title {
+      font-size: 26px; font-weight: 600; color: var(--navy); line-height: 1.18;
+      letter-spacing: -0.015em; margin-bottom: 10px;
+    }
+    .section-lede {
+      font-size: 15px; color: var(--text-mid); max-width: 780px; margin-bottom: 24px;
+    }
+
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 18px;
+    }
+    .card-title {
+      font-size: 14px; font-weight: 600; color: var(--navy);
+      margin-bottom: 6px; letter-spacing: -0.01em;
+    }
+    .card-meta {
+      font-size: 11px; font-weight: 500; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--accent); margin-bottom: 6px;
+    }
+    .card-body { font-size: 13px; color: var(--text-mid); line-height: 1.5; }
+    .card-body code { font-size: 12px; padding: 1px 5px; background: var(--bg-code); border-radius: 3px; color: var(--navy); }
+
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    @media (max-width: 900px) {
+      .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    }
+
+    .file-tree {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 18px 22px; overflow-x: auto;
+    }
+    .file-tree pre {
+      font-family: "Geist Mono", monospace; font-size: 12.5px;
+      line-height: 1.65; color: var(--text); white-space: pre;
+    }
+    .file-tree .dir { color: var(--accent); font-weight: 600; }
+    .file-tree .file { color: var(--navy); }
+    .file-tree .note { color: var(--text-muted); font-style: italic; }
+    .file-tree .auto { color: var(--good); font-weight: 600; }
+    .file-tree .demand { color: var(--warn); font-weight: 600; }
+    .file-tree .star { color: var(--warn); font-weight: 600; }
+
+    /* Compact horizontal flow (was vertical) */
+    .flow-h {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 18px;
+      display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 8px;
+      align-items: center; font-size: 12.5px;
+    }
+    .flow-h .step {
+      background: white; border: 1px solid var(--border);
+      border-radius: 6px; padding: 10px 12px;
+      text-align: center; color: var(--navy); font-weight: 500;
+    }
+    .flow-h .step.target { background: var(--accent); color: white; }
+    .flow-h .step .lbl { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 3px; }
+    .flow-h .step.target .lbl { color: rgba(255,255,255,0.7); }
+    .flow-h .arr { color: var(--accent); text-align: center; font-size: 16px; }
+    @media (max-width: 900px) {
+      .flow-h { grid-template-columns: 1fr; }
+      .flow-h .arr { transform: rotate(90deg); }
+    }
+
+    table.matrix {
+      width: 100%; border-collapse: collapse;
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px;
+      overflow: hidden; font-size: 13px;
+    }
+    table.matrix th, table.matrix td {
+      padding: 10px 12px; text-align: left; vertical-align: top;
+      border-bottom: 1px solid var(--border-soft);
+    }
+    table.matrix th {
+      background: var(--bg-alt); font-weight: 600; color: var(--navy);
+      font-size: 11px; letter-spacing: 0.10em; text-transform: uppercase;
+    }
+    table.matrix tr:last-child td { border-bottom: none; }
+    table.matrix td.mono, table.matrix th.mono {
+      font-family: "Geist Mono", monospace; font-size: 12px;
+    }
+    table.matrix .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+    .pill.good { background: rgba(77,138,92,0.13); color: var(--good); }
+    .pill.warn { background: rgba(194,136,74,0.13); color: var(--warn); }
+    .pill.bad { background: rgba(179,90,79,0.13); color: var(--bad); }
+    .pill.neutral { background: var(--accent-soft); color: var(--accent); }
+
+    .modes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    @media (max-width: 900px) { .modes { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px) { .modes { grid-template-columns: 1fr; } }
+    .mode {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px;
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .mode .badge {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+      color: white; padding: 3px 7px; border-radius: 4px;
+      align-self: flex-start;
+    }
+    .mode.m1 .badge { background: #6b9678; }
+    .mode.m2 .badge { background: #5a8aaa; }
+    .mode.m3 .badge { background: #c2884a; }
+    .mode.m4 .badge { background: #b35a4f; }
+    .mode-title { font-size: 13px; font-weight: 600; color: var(--navy); }
+    .mode-body { font-size: 12px; color: var(--text-mid); line-height: 1.45; }
+
+    code.inline {
+      font-family: "Geist Mono", monospace; font-size: 12px;
+      background: var(--bg-code); padding: 1px 6px; border-radius: 3px; color: var(--navy);
+    }
+
+    h3.subhead {
+      font-size: 16px; font-weight: 600; color: var(--navy);
+      margin: 22px 0 10px; letter-spacing: -0.01em;
+    }
+    h4.minihead {
+      font-size: 13px; font-weight: 600; color: var(--navy);
+      margin: 12px 0 5px;
+    }
+    p { margin-bottom: 8px; }
+    .text-mid { color: var(--text-mid); }
+
+    .map-row {
+      display: grid; grid-template-columns: 1fr 24px 1fr; gap: 12px;
+      padding: 7px 0; border-bottom: 1px solid var(--border-soft); font-size: 13px;
+      align-items: center;
+    }
+    .map-row:last-child { border-bottom: none; }
+    .map-row .arrow { color: var(--accent); text-align: center; font-weight: 600; }
+    .map-row .what-i-say { color: var(--text-mid); font-style: italic; }
+    .map-row .what-runs { font-family: "Geist Mono", monospace; font-size: 12.5px; color: var(--navy); font-weight: 600; }
+
+    footer {
+      background: var(--navy-deep); color: rgba(245,243,239,0.65);
+      padding: 26px 6%; font-size: 12.5px;
+    }
+    footer .container { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+    footer strong { color: rgba(245,243,239,0.85); }
+
+    .callout {
+      background: var(--bg-card); border-left: 4px solid var(--accent);
+      padding: 12px 16px; border-radius: 6px; margin-top: 12px;
+      font-size: 13px; color: var(--text-mid);
+    }
+    .callout.warn { border-left-color: var(--warn); }
+    .callout.good { border-left-color: var(--good); }
+    .callout strong { color: var(--navy); }
+
+    .hook-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-left: 4px solid var(--accent); border-radius: 8px; padding: 16px;
+    }
+    .hook-card .badge {
+      display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.14em;
+      text-transform: uppercase; color: white; background: var(--accent);
+      padding: 3px 7px; border-radius: 4px; margin-bottom: 8px;
+    }
+    .hook-card .title { font-size: 13.5px; font-weight: 600; color: var(--navy); margin-bottom: 6px; }
+    .hook-card .body { font-size: 12.5px; color: var(--text-mid); line-height: 1.5; }
+
+    .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; font-size: 12px; color: var(--text-mid); }
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .legend-dot.auto { background: var(--good); }
+    .legend-dot.demand { background: var(--warn); }
+  </style>
+</head>
+<body>
+
+<!-- ============================ HERO ============================ -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">Claude Code Configuration System · v3</div>
+    <h1>A lean, version-controlled methodology where every session already knows how I work.</h1>
+    <p class="lead">A private GitHub repo synced to <code style="color:#9fb8d1;background:rgba(255,255,255,0.06);padding:1px 6px;border-radius:3px;">~/.claude/</code>. A small set of preferences auto-loads every session; most files load on demand when their trigger matches. Three hooks enforce behavior. Two slash commands fire from verbal phrases. Restraint over machinery: only the parts that reliably work are in the system.</p>
+    <div class="stack">
+      <span class="stack-pill">Lean CLAUDE.md (~85 lines)</span>
+      <span class="stack-pill">Load-on-demand pattern</span>
+      <span class="stack-pill">3 lifecycle hooks</span>
+      <span class="stack-pill">Verbal triggers</span>
+      <span class="stack-pill">Claude-native security review</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 1. FILE TREE ============================ -->
+<section class="band">
+  <div class="container">
+    <div class="section-eyebrow">1 — The brain</div>
+    <h2 class="section-title">Everything lives under <code class="inline" style="font-size:20px;padding:2px 8px;">~/.claude/</code></h2>
+    <p class="section-lede">Private GitHub repo, version-controlled, synced to a fixed path on disk. Always-loaded preferences are small and universal. On-demand files are bigger and specific.</p>
+
+    <div class="legend">
+      <div class="legend-item"><span class="legend-dot auto"></span>auto-loaded every session via <code class="inline">@</code></div>
+      <div class="legend-item"><span class="legend-dot demand"></span>read on demand when trigger matches</div>
+    </div>
+
+    <div class="file-tree"><pre>
+<span class="dir">~/.claude/</span>
+│
+├── <span class="file">CLAUDE.md</span>                              <span class="star">⭐</span>  <span class="note">Lean orchestrator. Auto-loads @ includes,</span>
+│                                              <span class="note">documents on-demand triggers, routes to skills.</span>
+├── <span class="file">settings.json</span>                          🔧  <span class="note">Permission allowlist + hook registration.</span>
+├── <span class="file">SYSTEM_OVERVIEW.md</span>                     📄  <span class="note">Full system reference.</span>
+├── <span class="file">install-hooks.sh</span>                       🔧  <span class="note">Reinstalls .git/hooks/pre-commit on fresh clones.</span>
+│
+├── <span class="file">user.md</span>                                <span class="auto">●</span> <span class="note">User profile.</span>
+├── <span class="file">chat-context.md</span>                        <span class="auto">●</span> <span class="note">When to offer /handoff + verbal triggers.</span>
+├── <span class="file">file-permissions.md</span>                    <span class="auto">●</span> <span class="note">File access defaults.</span>
+├── <span class="file">uploaded-files.md</span>                      <span class="auto">●</span> <span class="note">Parse attachments without asking.</span>
+├── <span class="file">minimize-prompts.md</span>                    <span class="auto">●</span> <span class="note">Autonomy + permission rules.</span>
+│
+├── <span class="file">supabase-prefs.md</span>                      <span class="demand">○</span> <span class="note">New Supabase project / migrations.</span>
+├── <span class="file">vercel-prefs.md</span>                        <span class="demand">○</span> <span class="note">Vercel deploys / env vars.</span>
+├── <span class="file">ux-defaults.md</span>                         <span class="demand">○</span> <span class="note">UI / component builds.</span>
+├── <span class="file">claude-code-buildtime.md</span>               <span class="demand">○</span> <span class="note">Per-task time estimation.</span>
+├── <span class="file">security-review-prefs.md</span>               <span class="demand">○</span> <span class="note">"Check this for security" trigger.</span>
+├── <span class="file">google-docs-prefs.md</span>                   <span class="demand">○</span> <span class="note">Google Docs formatting standards.</span>
+├── <span class="file">google-docs-sync.md</span>                    <span class="demand">○</span> <span class="note">gdrive CLI + DOCX upload workflow.</span>
+├── <span class="file">brian-voice-samples.md</span>                 <span class="demand">○</span> <span class="note">Voice rules + samples for any drafting.</span>
+│
+├── <span class="dir">commands/</span>                              🎙️
+│   ├── <span class="file">handoff.md</span>                         <span class="note">/handoff (verbal: "wrap this up")</span>
+│   └── <span class="file">checkpoint.md</span>                      <span class="note">/checkpoint (verbal: "note this")</span>
+│
+├── <span class="dir">hooks/</span>                                 🪝
+│   ├── <span class="file">session-start.py</span>                   <span class="note">SessionStart: inject handoff context.</span>
+│   ├── <span class="file">test-this-enforcer.py</span>              <span class="note">Stop: block if UI edited without Test this.</span>
+│   └── <span class="file">ui-screenshot-reminder.py</span>          <span class="note">PostToolUse: detect dev server, guide screenshot.</span>
+│
+├── <span class="dir">skills/</span>                                <span class="note">Custom skills (tracked in git).</span>
+│   ├── <span class="file">client-discovery-audit/</span>
+│   └── <span class="file">nextjs-supabase-stack/</span>
+│
+└── <span class="dir">templates/</span>
+    ├── <span class="file">poc-intake-form.md</span>                 <span class="note">10-section intake.</span>
+    ├── <span class="file">poc-build-playbook.md</span>              <span class="note">Recipe: intake → bootstrap → demo.</span>
+    ├── <span class="file">launch-playbook.md</span>                 <span class="note">42-item production hardening, 9 phases.</span>
+    ├── <span class="file">connector-integration-playbook.md</span>  <span class="note">Build SaaS connectors.</span>
+    ├── <span class="file">agent-design-playbook.md</span>           <span class="note">Design patterns for agents.</span>
+    ├── <span class="file">customer-facing-prompt-templates.md</span><span class="note">7-section structure for client GPTs.</span>
+    └── <span class="file">client-deliverable-bundle.md</span>       <span class="note">Standardized Drive deliverables.</span>
+</pre></div>
+  </div>
+</section>
+
+<!-- ============================ 2. AUTO-LOAD vs ON-DEMAND ============================ -->
+<section class="band alt compact">
+  <div class="container">
+    <div class="section-eyebrow">2 — How it loads</div>
+    <h2 class="section-title">Always-on (small) vs. on-demand (most)</h2>
+    <p class="section-lede">An earlier version auto-loaded every preference into every session, eating ~5,000 tokens before the first message. The new pattern keeps it lean by auto-loading only small universal files and triggering the bigger ones explicitly.</p>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-meta">Always auto-load (5 files)</div>
+        <div class="card-body">
+          <code>@user.md</code> · <code>@chat-context.md</code> · <code>@file-permissions.md</code> · <code>@uploaded-files.md</code> · <code>@minimize-prompts.md</code>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-meta">Load on demand (read on trigger)</div>
+        <div class="card-body">
+          supabase-prefs · vercel-prefs · ux-defaults · claude-code-buildtime · security-review-prefs · google-docs-prefs/sync · voice-samples · templates/*
+        </div>
+      </div>
+    </div>
+
+    <div class="callout warn"><strong>Trade-off:</strong> load-on-demand only works if the trigger is recognized AND the file is read before answering. To hedge, CLAUDE.md inlines the most critical numbers (build-time anchors, "Test this" requirement) so the right behavior fires even if the on-demand file gets skipped.</div>
+  </div>
+</section>
+
+<!-- ============================ 3. WORKING MODES ============================ -->
+<section class="band">
+  <div class="container">
+    <div class="section-eyebrow">3 — Working modes</div>
+    <h2 class="section-title">Four permission modes, cycled with Shift+Tab</h2>
+    <p class="section-lede">Mostly Claude Code's defaults, not custom config. The always-ask list applies in all modes.</p>
+
+    <div class="modes">
+      <div class="mode m1">
+        <span class="badge">Plan</span>
+        <div class="mode-title">Read-only research</div>
+        <div class="mode-body">Read + browse. No edits, no shell. Outputs a plan for approval.</div>
+      </div>
+      <div class="mode m2">
+        <span class="badge">Default</span>
+        <div class="mode-title">Ask before changes</div>
+        <div class="mode-body">Read freely; prompts before every edit, write, and non-allowlisted Bash.</div>
+      </div>
+      <div class="mode m3">
+        <span class="badge">Accept Edits</span>
+        <div class="mode-title">Auto-edit files</div>
+        <div class="mode-body">Edits and writes without asking. Still prompts before Bash.</div>
+      </div>
+      <div class="mode m4">
+        <span class="badge">Auto</span>
+        <div class="mode-title">Mostly autonomous</div>
+        <div class="mode-body">Everything autonomous except the always-ask list.</div>
+      </div>
+    </div>
+
+    <div class="callout"><strong>Always-ask</strong> (in all modes): push to <code class="inline">main</code>, force-push, prod migrations, destructive ops, custom-domain deploys, real-customer email, paid-tier spend.</div>
+
+    <div class="callout"><strong>Truly interrupt mid-task:</strong> press <code class="inline">Esc</code>. Cancels the in-flight tool call. New messages typed while busy just queue — Esc is the only real interrupt.</div>
+
+    <div class="callout good"><strong>Bypass-permissions toggle:</strong> in Claude Code app settings, "Allow bypass permissions mode" is OFF. This is correct — leaving it on would silently inject <code class="inline">--allow-dangerously-skip-permissions</code> into launch args and neutralize the entire allowlist.</div>
+  </div>
+</section>
+
+<!-- ============================ 4. ACTIVE HOOKS ============================ -->
+<section class="band alt">
+  <div class="container">
+    <div class="section-eyebrow">4 — Active hooks</div>
+    <h2 class="section-title">Three lifecycle hooks enforce behavior</h2>
+    <p class="section-lede">Each hook has narrow gating and logs to <code class="inline">~/.claude/hooks/&lt;name&gt;.log</code> for debugging.</p>
+
+    <div class="grid-3">
+      <div class="hook-card">
+        <div class="badge">SessionStart</div>
+        <div class="title">session-start.py</div>
+        <div class="body">If <code>~/.claude/.next-chat.json</code> exists (queued by /handoff in the prior chat), injects the queued opening prompt into the new session so it immediately reads the handoff summary. Includes cwd validation. Fails silently on error — never blocks session start.</div>
+      </div>
+      <div class="hook-card">
+        <div class="badge">Stop</div>
+        <div class="title">test-this-enforcer.py</div>
+        <div class="body">If the turn edited a <code>.tsx</code> file under <code>app/</code> or <code>components/</code> but the response is missing a <code>## Test this</code> section, BLOCKS the turn and tells Claude to add it. Has loop protection.</div>
+      </div>
+      <div class="hook-card">
+        <div class="badge">PostToolUse</div>
+        <div class="title">ui-screenshot-reminder.py</div>
+        <div class="body">After Edit / Write / MultiEdit on <code>.tsx</code> files: uses <code>lsof</code> to detect a running dev server for that project. If found, emits exact <code>http://localhost:PORT/route</code> + Claude_Preview MCP calls. If not, gives honest "skip screenshot, here's the manual <code>npm run dev</code> step" guidance.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 5. SLASH COMMANDS + VERBAL TRIGGERS ============================ -->
+<section class="band">
+  <div class="container">
+    <div class="section-eyebrow">5 — Commands & verbal triggers</div>
+    <h2 class="section-title">Two commands, invoked by speaking</h2>
+    <p class="section-lede">The user dictates and doesn't type slash syntax.</p>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-meta">/handoff</div>
+        <div class="card-title">Wrap up this chat</div>
+        <div class="card-body">Writes a session summary including a "what changed and what to verify" section covering ALL change types (code / DB / deploy / env / 3rd-party). Queues an opening prompt for the next chat via <code>.next-chat.json</code>.</div>
+      </div>
+      <div class="card">
+        <div class="card-meta">/checkpoint</div>
+        <div class="card-title">Append a dated note</div>
+        <div class="card-body">Adds an entry to <code>docs/CHECKPOINTS.md</code> in the current project.</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 14px; padding: 14px 18px;">
+      <div class="map-row">
+        <div class="what-i-say">"wrap this up" / "save and continue" / "running out of room"</div>
+        <div class="arrow">→</div>
+        <div class="what-runs">/handoff</div>
+      </div>
+      <div class="map-row">
+        <div class="what-i-say">"yes" / "go" in response to a wrap-up offer</div>
+        <div class="arrow">→</div>
+        <div class="what-runs">/handoff</div>
+      </div>
+      <div class="map-row">
+        <div class="what-i-say">"checkpoint this" / "note this" / "log this"</div>
+        <div class="arrow">→</div>
+        <div class="what-runs">/checkpoint</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 6. CONTEXT MONITORING ============================ -->
+<section class="band alt compact">
+  <div class="container">
+    <div class="section-eyebrow">6 — Context monitoring</div>
+    <h2 class="section-title">One honest rule, no theater</h2>
+    <p class="section-lede">An earlier version had a 3-tier system tied to image counts, tool-call counts, and elapsed time. Claude can't reliably measure any of those across turns, so the tiers were aspirational. Replaced with the only thing that actually works:</p>
+
+    <div class="card" style="padding: 16px 18px;">
+      <em style="color: var(--text-mid);">Proactively offer <code class="inline">/handoff</code> when the user mentions slowness ("slow," "heavy," "running out," "freezing") or at a natural pause point. The verbal cue is the only reliable trigger.</em>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 7. CHAT HANDOFF FLOW ============================ -->
+<section class="band compact">
+  <div class="container">
+    <div class="section-eyebrow">7 — Chat handoff flow</div>
+    <h2 class="section-title">From "wrap this up" to a context-loaded next chat</h2>
+
+    <div class="flow-h">
+      <div class="step"><span class="lbl">User says</span>"wrap this up"</div>
+      <div class="arr">→</div>
+      <div class="step"><span class="lbl">/handoff runs</span>summary + <span class="mono">.next-chat.json</span></div>
+      <div class="arr">→</div>
+      <div class="step"><span class="lbl">Cmd+N</span>SessionStart hook injects opening prompt</div>
+    </div>
+
+    <div class="callout warn"><strong>What works:</strong> the summary + opening-prompt injection. <strong>What doesn't:</strong> auto-naming the chat in the sidebar (Claude Code's UI doesn't reliably read title metadata). Rename via right-click after the chat opens if you want.</div>
+  </div>
+</section>
+
+<!-- ============================ 8. TEMPLATES ============================ -->
+<section class="band alt">
+  <div class="container">
+    <div class="section-eyebrow">8 — Templates</div>
+    <h2 class="section-title">Seven playbooks for recurring shapes of work</h2>
+    <p class="section-lede">Loaded on demand when the trigger matches.</p>
+
+    <div class="grid-3">
+      <div class="card">
+        <div class="card-meta">Intake</div>
+        <div class="card-title">poc-intake-form.md</div>
+        <div class="card-body">10-section intake filled per project: must-land feature, data sources, stub-vs-real, branding, risks.</div>
+      </div>
+      <div class="card">
+        <div class="card-meta">Build</div>
+        <div class="card-title">poc-build-playbook.md</div>
+        <div class="card-body">Phase 1 bootstrap, Phase 2 data-first, per-feature checks, Phase 3 demo prep. Includes third-party service vetting.</div>
+      </div>
+      <div class="card">
+        <div class="card-meta">Launch</div>
+        <div class="card-title">launch-playbook.md</div>
+        <div class="card-body">42-item production hardening across 9 phases. L1-L8 web app + L9 AI agent launch.</div>
+      </div>
+      <div class="card">
+        <div class="card-meta">Connectors</div>
+        <div class="card-title">connector-integration-playbook.md</div>
+        <div class="card-body">Discovery → tool pick (Make / Zapier / n8n / custom) → design → build → harden → handoff.</div>
+      </div>
+      <div class="card">
+        <div class="card-meta">Agents</div>
+        <div class="card-title">agent-design-playbook.md</div>
+        <div class="card-body">When to use an agent at all, common patterns, guardrails, single vs. sub-agent decisions.</div>
+      </div>
+      <div class="card">
+        <div class="card-meta">Client prompts</div>
+        <div class="card-title">customer-facing-prompt-templates.md</div>
+        <div class="card-body">7-section structure for system prompts handed to clients; reusable refusal patterns.</div>
+      </div>
+      <div class="card">
+        <div class="card-meta">Deliverables</div>
+        <div class="card-title">client-deliverable-bundle.md</div>
+        <div class="card-body">Standardized Drive folder structure for every client engagement.</div>
+      </div>
+    </div>
+
+    <div class="callout warn"><strong>No usage tracking:</strong> there's no system that counts how often each template gets loaded. To gauge actual use, grep your session logs in <code class="inline">~/.claude/projects/*/*.jsonl</code> for the template filename. Practical rule: if a template hasn't been referenced in 90+ days, consider retiring it to reduce config surface area.</div>
+  </div>
+</section>
+
+<!-- ============================ 9. SKILLS ============================ -->
+<section class="band">
+  <div class="container">
+    <div class="section-eyebrow">9 — Skills</div>
+    <h2 class="section-title">Route to installed skills before reinventing</h2>
+    <p class="section-lede">CLAUDE.md routes intent to the right skill automatically.</p>
+
+    <table class="matrix">
+      <thead>
+        <tr><th>Situation</th><th>Skill</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Client engagement, discovery audit, intake call</td><td class="mono">client-discovery-audit</td></tr>
+        <tr><td>New full-stack web app, dashboard, CRUD platform</td><td class="mono">nextjs-supabase-stack</td></tr>
+        <tr><td>Code review on the current diff</td><td class="mono">code-review</td></tr>
+        <tr><td>Security review on pending changes</td><td class="mono">security-review</td></tr>
+        <tr><td>Reuse / simplification / efficiency cleanup</td><td class="mono">simplify</td></tr>
+        <tr><td>Verify a fix works by running the app</td><td class="mono">verify</td></tr>
+        <tr><td>Claude API / SDK / Managed Agents code</td><td class="mono">claude-api</td></tr>
+        <tr><td>Multi-source research with verification</td><td class="mono">deep-research</td></tr>
+        <tr><td>Recurring scheduled task / cron</td><td class="mono">schedule</td></tr>
+        <tr><td>Word / PDF / Excel / PowerPoint document work</td><td class="mono">anthropic-skills:docx / :pdf / :xlsx / :pptx</td></tr>
+        <tr><td>Creating or editing skills</td><td class="mono">anthropic-skills:skill-creator</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================ 10. TECH STACK ============================ -->
+<section class="band alt compact">
+  <div class="container">
+    <div class="section-eyebrow">10 — Tech stack defaults</div>
+    <h2 class="section-title">Standing choices, loaded on demand</h2>
+
+    <div class="grid-4">
+      <div class="card">
+        <div class="card-meta">Framework</div>
+        <div class="card-title">Next.js</div>
+        <div class="card-body">App Router, React 19, Turbopack, TypeScript.</div>
+      </div>
+      <div class="card">
+        <div class="card-meta">Styling</div>
+        <div class="card-title">Tailwind v4</div>
+        <div class="card-body">CSS <code>@theme</code>. Density 30-50% tighter than defaults.</div>
+      </div>
+      <div class="card">
+        <div class="card-meta">Database</div>
+        <div class="card-title">Supabase</div>
+        <div class="card-body">Postgres + Auth + Storage. PRO, MICRO, us-east-1.</div>
+      </div>
+      <div class="card">
+        <div class="card-meta">Hosting</div>
+        <div class="card-title">Vercel</div>
+        <div class="card-body">Standard build machine. Auto-deploy on push to main.</div>
+      </div>
+      <div class="card">
+        <div class="card-meta">Fonts</div>
+        <div class="card-title">Playfair + Source Sans 3</div>
+        <div class="card-body">Display + body, via <code>next/font/google</code>.</div>
+      </div>
+      <div class="card">
+        <div class="card-meta">Tests</div>
+        <div class="card-title">Curl + Node</div>
+        <div class="card-body">Smoke (every page 200) + integrity (rows, FKs, RLS).</div>
+      </div>
+      <div class="card">
+        <div class="card-meta">Email</div>
+        <div class="card-title">Resend (when needed)</div>
+        <div class="card-body">Free 3k/mo, $20/mo first tier. Not default.</div>
+      </div>
+      <div class="card">
+        <div class="card-meta">Auth (POC)</div>
+        <div class="card-title">Basic auth middleware</div>
+        <div class="card-body">Admin routes only. Replaced at launch.</div>
+      </div>
+    </div>
+
+    <h3 class="subhead">UI/UX defaults (loaded with ux-defaults.md on UI work)</h3>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">Vertical density — aggressive</div>
+        <div class="card-body">Margins <code>my-6</code> not <code>my-10</code>. Padding <code>p-4</code> not <code>p-8</code>. Critical content fits 1280×900 without scroll.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Standard pages by default</div>
+        <div class="card-body"><code>/admin</code> with dashboard tiles. UI-editable config table. Schema diagram on admin page.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Error UX — anticipate failures</div>
+        <div class="card-body">Every external call ships with user-facing guidance in the same commit. Reusable toast / inline-error component.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Defensive text overflow</div>
+        <div class="card-body">All text from DB / user input uses <code>truncate</code> + <code>min-w-0</code> on flex children with <code>title</code> tooltip.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 11. SECURITY REVIEW ============================ -->
+<section class="band">
+  <div class="container">
+    <div class="section-eyebrow">11 — Security review</div>
+    <h2 class="section-title">Claude-native toolset, runnable on demand</h2>
+    <p class="section-lede">All instant, free, no external service. Defined in <code class="inline">security-review-prefs.md</code>.</p>
+
+    <div class="grid-3">
+      <div class="card">
+        <div class="card-meta">Primary</div>
+        <div class="card-title">/security-review</div>
+        <div class="card-body">Anthropic's built-in AI code review. Injection, auth gaps, secret exposure.</div>
+      </div>
+      <div class="card">
+        <div class="card-meta">Stack-specific</div>
+        <div class="card-title">Supabase advisors</div>
+        <div class="card-body">MCP <code>get_advisors</code> type "security". Catches RLS misconfigurations — the #1 risk for the stack.</div>
+      </div>
+      <div class="card">
+        <div class="card-meta">Secrets</div>
+        <div class="card-title">Gitleaks</div>
+        <div class="card-body"><code>gitleaks detect</code>. Full git history. Also runs as pre-commit hook on the config repo.</div>
+      </div>
+      <div class="card">
+        <div class="card-meta">Static analysis</div>
+        <div class="card-title">Semgrep</div>
+        <div class="card-body"><code>semgrep --config=auto</code>. SAST with security ruleset.</div>
+      </div>
+      <div class="card">
+        <div class="card-meta">Dependencies</div>
+        <div class="card-title">npm audit / osv-scanner</div>
+        <div class="card-body">Known CVEs. Address critical and high.</div>
+      </div>
+    </div>
+
+    <div class="callout"><strong>Minimum trio:</strong> /security-review + Supabase advisors + Gitleaks. Covers code logic, database config, and leaked credentials — the three places POCs actually get breached.</div>
+  </div>
+</section>
+
+<!-- ============================ 12. BUILD-TIME CALIBRATION ============================ -->
+<section class="band alt">
+  <div class="container">
+    <div class="section-eyebrow">12 — Build-time calibration</div>
+    <h2 class="section-title">10-30× faster than traditional dev time</h2>
+    <p class="section-lede">Anchors to Claude Code wall-clock time (actual elapsed user + Claude time), not traditional dev hours. Headline numbers also inlined in CLAUDE.md.</p>
+
+    <table class="matrix">
+      <thead>
+        <tr><th>Task</th><th>Traditional dev</th><th>Claude Code time</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>POC scaffold (auth, schema, 1 page)</td><td>8-16 hours</td><td><strong>15-30 min</strong></td></tr>
+        <tr><td>Add CRUD feature (list + detail + form)</td><td>4-6 hours</td><td><strong>5-15 min</strong></td></tr>
+        <tr><td>Brand / design pass across pages</td><td>4-8 hours</td><td><strong>15-30 min</strong></td></tr>
+        <tr><td>Schema migration + types + RLS</td><td>1-2 hours</td><td><strong>3-10 min</strong></td></tr>
+        <tr><td>Senior architect review</td><td>4-8 hours</td><td><strong>10-20 min</strong></td></tr>
+        <tr><td>Production hardening pass</td><td>2-3 days</td><td><strong>1-2 hours</strong> (mostly external bottlenecks)</td></tr>
+        <tr><td>Discovery audit synthesis</td><td>4-8 hours</td><td><strong>20-40 min</strong></td></tr>
+        <tr><td>Small Make / Zapier connector</td><td>1-2 days</td><td><strong>20-60 min</strong></td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout"><strong>External bottlenecks NOT counted as Claude work:</strong> <code class="inline">npm install</code>, Vercel build + deploy, Supabase migration apply, user decision time, third-party API rate limits.</div>
+  </div>
+</section>
+
+<!-- ============================ 13. PERMISSION SYSTEM ============================ -->
+<section class="band compact">
+  <div class="container">
+    <div class="section-eyebrow">13 — Permission system</div>
+    <h2 class="section-title">Tight allow / strict ask / blanket refuse</h2>
+    <p class="section-lede">Narrow auto-allow for known-safe categories. Hard refusal for prod migrations and credential-bearing operations.</p>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-meta">Always-ask (no exceptions)</div>
+        <div class="card-body">Push to <code>main</code>, force-push, <strong>prod migrations</strong> (no session approval, ever), <code>rm -rf</code> outside build artifacts, paid-tier spend, custom-domain deploy, real-customer email, global system packages.</div>
+      </div>
+      <div class="card">
+        <div class="card-meta">JSON policy (3 tiers)</div>
+        <div class="card-body">
+          <code>.claude/**/*.json</code> → auto-allow (Claude's own config, no creds).<br>
+          Named root configs (package, tsconfig, next, tailwind, eslint, postcss) → auto-allow.<br>
+          <strong>Blanket <code>**/*.json</code> → refused</strong> (would match service-account.json, AWS credentials, Firebase admin keys, Stripe configs).
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 14. MAC WORKFLOW ============================ -->
+<section class="band alt">
+  <div class="container">
+    <div class="section-eyebrow">14 — Mac workflow</div>
+    <h2 class="section-title">Hardware + OS context</h2>
+    <p class="section-lede">Claude Code is the engine; local performance depends on Mac state. Long uptimes, stuck daemons, and iCloud sync churn quietly degrade everything.</p>
+
+    <h3 class="subhead">Multi-monitor setup (M1 MacBook Air)</h3>
+    <div class="card" style="padding: 16px;">
+      <div class="card-body">Setup: <strong>single USB-C cable to a docking station that splits to two external monitors</strong>. Reliable, no overheating, works great. Tried plugging one monitor directly to a USB-C port to bypass DisplayLink on that one (since M1 supports one native external), but the direct adapter overheated and the screen flickered. The docking station handles everything cleanly, so keep that setup.</div>
+    </div>
+
+    <h3 class="subhead">Session-start hygiene check (surfaces in ONE line only if drifting)</h3>
+    <table class="matrix">
+      <thead>
+        <tr><th>Check</th><th>Trigger</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Mac uptime</td><td>&gt; 7 days → suggest reboot (single biggest perf win)</td></tr>
+        <tr><td>Stale dev servers</td><td>Any <code>npm run dev</code> running &gt;48h</td></tr>
+        <tr><td>DB pointer</td><td>Which Supabase project does <code>.env.local</code> point at</td></tr>
+        <tr><td>Uncommitted drift in ~/.claude/</td><td>&gt;5 untracked OR file modified &gt;7 days ago</td></tr>
+      </tbody>
+    </table>
+
+    <h3 class="subhead">Diagnostic order when the Mac feels slow</h3>
+    <table class="matrix">
+      <thead>
+        <tr><th>#</th><th>Check</th><th>Healthy</th><th>If unhealthy</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>Uptime</td><td>&lt; 7 days</td><td><strong>Reboot.</strong> Single biggest win.</td></tr>
+        <tr><td>2</td><td>Load average</td><td>1-3</td><td>&gt;10 = overloaded. Check top CPU.</td></tr>
+        <tr><td>3</td><td><code>fileproviderd</code></td><td>&lt; 5%</td><td>Stuck iCloud sync. Disable Messages-in-iCloud; pause iCloud Drive.</td></tr>
+        <tr><td>4</td><td><code>mds_stores</code></td><td>&lt; 5%</td><td>Stuck Spotlight. Reboot clears.</td></tr>
+        <tr><td>5</td><td>Stale dev servers</td><td>0-1</td><td><code>kill PID</code> on anything &gt;48h.</td></tr>
+        <tr><td>6</td><td>Concurrent Claude sessions</td><td>1-2</td><td>Each ~150 MB RAM. Close unused.</td></tr>
+      </tbody>
+    </table>
+
+    <h3 class="subhead">Production deploy gotcha (logged 2026-05-30)</h3>
+    <div class="callout warn"><strong>Vercel env vars must never have leading or trailing whitespace.</strong> Vars used in HTTP headers (<code class="inline">CRON_SECRET</code>, auth tokens, API keys) will fail-build with a specific Vercel error. Burned a production deploy on a client project once. <code class="inline">vercel-prefs.md</code> now has an <code class="inline">xargs</code> defensive snippet for piped env-var values.</div>
+  </div>
+</section>
+
+<!-- ============================ 15. MAINTENANCE ============================ -->
+<section class="band compact">
+  <div class="container">
+    <div class="section-eyebrow">15 — Maintenance</div>
+    <h2 class="section-title">How the system stays current</h2>
+
+    <div class="grid-3">
+      <div class="card">
+        <div class="card-title">Maintenance rule</div>
+        <div class="card-body">When config changes, edit <code>SYSTEM_OVERVIEW.md</code> in the same commit. Bump date, add evolution log entry, update file-layout.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Commit hygiene</div>
+        <div class="card-body">Commit by named file (never <code>-A</code>). Heredoc or file for multi-line messages. Always-ask before pushing to main.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Gitleaks pre-commit</div>
+        <div class="card-body"><code>.git/hooks/pre-commit</code> runs <code>gitleaks protect --staged</code>. Blocks if it finds secrets. Reinstall on fresh clones via <code>install-hooks.sh</code>.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div>
+      <strong>Claude Code Config System · v3</strong><br>
+      Visual overview of a personal methodology. Post round-3 cleanup.
+    </div>
+    <div style="text-align: right;">
+      Methodology version: 2026-Q2 r3<br>
+      Public-safe rendering — no personal identifiers, no real project names, no credentials.
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
