@@ -43,7 +43,7 @@ footer{margin-top:56px;font-size:.9rem;color:var(--muted)}
 
 <h1>How I work with Claude Code</h1>
 <p class="lede">I'm Brian West, a mechanical engineer who spent 25 years in product development at SolarCity, Tesla and GAF Energy. I now run a small consultancy, and I build everything with Claude Code. This page shows how I set it up so the work stays safe, checkable and repeatable, and how I teach that to people who have never written code.</p>
-<p class="meta">Updated 29 October 2026 · <a href="https://github.com/brianw123-cell">GitHub</a> · <a href="https://www.westproductdev.com">westproductdev.com</a> · <a href="https://www.linkedin.com/in/westproductdev">LinkedIn</a></p>
+<p class="meta">Updated 8 November 2026 · <a href="https://github.com/brianw123-cell">GitHub</a> · <a href="https://www.westproductdev.com">westproductdev.com</a> · <a href="https://www.linkedin.com/in/westproductdev">LinkedIn</a></p>
 
 <h2>What it has produced</h2>
 <div class="grid">
@@ -60,14 +60,25 @@ footer{margin-top:56px;font-size:.9rem;color:var(--muted)}
   <div class="card"><h3>24 preference files, loaded on demand</h3><p>Database setup, deploys, accessibility, privacy, security reviews, proposals. Each one loads only when its trigger comes up.</p></div>
   <div class="card"><h3>5 custom skills</h3><p>Repeatable workflows: a client discovery audit, a standard app stack, quick prototypes, research with sources, and turning a call transcript into a summary, notes and a follow-up email.</p></div>
   <div class="card"><h3>4 spoken commands</h3><p>I dictate most of my work, so commands fire on phrases like "wrap this up" (hand off to a fresh session) or "grill me" (get interviewed about a plan before building).</p></div>
-  <div class="card"><h3>9 playbooks</h3><p>Proof of concept, launch, integrations, agent design, client deliverables, discovery tracking. Each is a checklist I start from, not a template I fill in blind.</p></div>
+  <div class="card"><h3>10 playbooks</h3><p>Proof of concept, launch, integrations, agent design, client deliverables, discovery tracking. Each is a checklist I start from, not a template I fill in blind.</p></div>
   <div class="card"><h3>Project memory</h3><p>Each project keeps short notes on facts that aren't in the code: decisions, client constraints, things I got wrong once and shouldn't again.</p></div>
 </div>
+
+<h2>The Project Binder</h2>
+<p>Long projects fail quietly when what was decided lives in old chats and scattered documents. So any project with real users, a client with several people sending requests, or more than about a month of work gets five files, like one binder with five tabs.</p>
+<div class="grid">
+  <div class="card"><h3>Register</h3><p>What's true and what we decided: accounts, decisions and the reasons for them, prices, who owes what. It wins any argument with another document.</p></div>
+  <div class="card"><h3>Status and Plan</h3><p>The roadmap: what's built, what's in progress and what comes next.</p></div>
+  <div class="card"><h3>Workflows</h3><p>Every task a person can do in the system, step by step.</p></div>
+  <div class="card"><h3>Wish List</h3><p>What people want that isn't agreed yet, with who asked and when. It becomes the next statement of work.</p></div>
+  <div class="card"><h3>Request Log</h3><p>Every request that comes in: who asked, the decision, what was built and what was said back.</p></div>
+</div>
+<p>Each time I wrap up a session, Claude opens all five, compares each with what just happened, and reports it as updated or unchanged. It also checks what really happened first, in sent mail and the help desk, instead of trusting what the chat remembers.</p>
 
 <h2>Guardrails: what Claude can do on its own</h2>
 <p>Most of the friction in AI work is permission prompts, and most of the risk is one action you can't take back. So I sort actions into three groups and write them down.</p>
 <div class="tier allow"><b>Pre-approved</b>Reading project files, running tests and type checks, applying database changes to a development branch, committing and pushing to a feature branch. 47 narrow, named command patterns, never a blanket "allow all."</div>
-<div class="tier ask"><b>Always ask, no exceptions</b>Pushing to the main branch, any change to a production database, force-pushing, deleting data or branches, anything that costs money, deploying to a real domain, and emailing or texting real customers.</div>
+<div class="tier ask"><b>Always ask, no exceptions</b>Pushing code to the main branch of a production system, any change to a production database, force-pushing, deleting data or branches, anything that costs money, deploying to a real domain, and emailing or texting real customers.</div>
 <div class="tier never"><b>Never</b>Running with permission checks bypassed. Blanket access to file types that commonly hold secrets. Any agent that sends on its own: my production agent drafts, and a person approves every send.</div>
 <p>Secrets get a second line of defense: a scan runs before every commit to my configuration, and client apps get a separate security review before launch.</p>
 
